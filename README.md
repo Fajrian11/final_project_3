@@ -68,16 +68,8 @@ untuk melakukan DELETE atau menghapus task bisa dengan menambahkan taskId dibela
 
 Repository ini telah di Deploy melalui Railway.app `https://finalproject3-group5.up.railway.app/`
 
-## How To Run
+## Our Team (Group 5)
 
-We use Makefile to run the project.
-
-```bash
-make run
-```
-
-## Our Team
-
-- Pande Putu Devo Punda Maheswara
-- Hanif Fadillah Amrynudin
-- I Putu Agus Arya Wiguna
+- Fajrian Nugraha
+- Ragil Syai
+- Al Bukhari Bin Riedho
