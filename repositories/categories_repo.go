@@ -23,6 +23,7 @@ func NewCategoriesRepo(db *gorm.DB) CategoriesRepo {
 type CategoriesRepoApi interface {
 	CreateCategories(c *gin.Context) (models.Categories, error)
 	GetAllCategories(c *gin.Context) ([]models.Categories, error)
+	GetCategoryById(c *gin.Context) (models.Categories, error)
 	UpdateCategories(c *gin.Context) (models.Categories, error)
 	DeleteCategories(c *gin.Context) (models.Categories, error)
 }
@@ -55,6 +56,17 @@ func (cr *CategoriesRepo) GetAllCategories(c *gin.Context) ([]models.Categories,
 
 	fmt.Println(err)
 	return GetAllCategories, err
+}
+
+func (cr *CategoriesRepo) GetCategoryById(c *gin.Context) (models.Categories, error) {
+	var GetCategory = models.Categories{}
+	categoryId, _ := strconv.Atoi(c.Param("categoryId"))
+
+	// err := cr.db.Model(&models.Categories{}).Find(&GetCategory).Error
+	err := cr.db.First(&GetCategory, categoryId).Error
+
+	fmt.Println(err)
+	return GetCategory, err
 }
 
 func (cr *CategoriesRepo) UpdateCategories(c *gin.Context) (models.Categories, error) {

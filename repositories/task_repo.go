@@ -1,11 +1,9 @@
 package repositories
 
 import (
-	"errors"
 	"final_project_3/helpers"
 	"final_project_3/models"
 	"fmt"
-	"net/http"
 	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
@@ -24,20 +22,21 @@ func NewTaskRepo(db *gorm.DB) TaskRepo {
 }
 
 type TaskRepoApi interface {
-	CreateTask(c *gin.Context) (models.Task, error, error)
+	CreateTask(c *gin.Context) (models.Task, error)
 	GetAllTask(c *gin.Context) ([]models.Task, error)
+	GetCategoryById(categoryId uint) (models.Categories, error)
 	UpdateTask(c *gin.Context) (models.Task, error, models.Task)
 	UpdateStatusTask(c *gin.Context) (models.Task, error, models.Task)
 	UpdateCategoryTask(c *gin.Context) (models.Task, error, models.Task)
 	DeleteTask(c *gin.Context) (models.Task, error)
 }
 
-func (tr *TaskRepo) CreateTask(c *gin.Context) (models.Task, error, error) {
+func (tr *TaskRepo) CreateTask(c *gin.Context) (models.Task, error) {
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	contentType := helpers.GetContentType(c)
 
 	Task := models.Task{}
-	Categories := models.Categories{}
+	// Categories := models.Categories{}
 	UserID := uint(userData["id"].(float64))
 
 	if contentType == appJSON {
@@ -53,16 +52,16 @@ func (tr *TaskRepo) CreateTask(c *gin.Context) (models.Task, error, error) {
 		fmt.Println(err.Error())
 	}
 
-	err2 := tr.db.Select("id").First(&Categories, uint(Task.CategoryID)).Error
+	// err2 := tr.db.Select("id").First(&Categories, uint(Task.CategoryID)).Error
 
-	if err2 != nil {
-		err2 = errors.New("Data Not Found")
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error":   "category_id Not Found",
-			"message": "category_id doesn't exists",
-		})
-	}
-	return Task, err, err2
+	// if err2 != nil {
+	// 	err2 = errors.New("Data Not Found")
+	// 	c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+	// 		"error":   "category_id Not Found",
+	// 		"message": "category_id doesn't exists",
+	// 	})
+	// }
+	return Task, err
 }
 
 func (tr *TaskRepo) GetAllTask(c *gin.Context) ([]models.Task, error) {
@@ -77,6 +76,17 @@ func (tr *TaskRepo) GetAllTask(c *gin.Context) ([]models.Task, error) {
 	err := tr.db.Preload("User").Find(&GetAllTask).Error
 	fmt.Println(err)
 	return GetAllTask, err
+}
+
+func (tr *TaskRepo) GetCategoryById(categoryId uint) (models.Categories, error) {
+	var GetCategory = models.Categories{}
+	// categoryId, _ := strconv.Atoi(c.Param("categoryId"))
+
+	// err := tr.db.First(&GetCategory, categoryId).Error
+	err := tr.db.Select("id").First(&GetCategory, categoryId).Error
+
+	fmt.Println(err)
+	return GetCategory, err
 }
 
 func (tr *TaskRepo) UpdateTask(c *gin.Context) (models.Task, error, models.Task) {

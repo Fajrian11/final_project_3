@@ -24,6 +24,10 @@ func (cc *CategoriesController) GetAllCategoriesControllers(c *gin.Context) {
 	res := cc.csa.GetAllCategoriesService(c)
 	c.JSON(http.StatusOK, res)
 }
+func (cc *CategoriesController) GetCategoryByIdControllers(c *gin.Context) {
+	res := cc.csa.GetCategoryByIdService(c)
+	c.JSON(http.StatusOK, res)
+}
 
 func (cc *CategoriesController) UpdateCategoriesControllers(c *gin.Context) {
 	res := cc.csa.UpdateCategoriesService(c)

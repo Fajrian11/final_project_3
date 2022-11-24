@@ -32,7 +32,7 @@ func (s UserService) UserRegisterService(c *gin.Context) gin.H {
 		result gin.H
 	)
 
-	user, err := s.rr.UserRegister(c)
+	user, err, err2 := s.rr.UserRegister(c)
 	validateEmail := Valid(user.Email)
 	if err != nil {
 		result = gin.H{
@@ -49,6 +49,10 @@ func (s UserService) UserRegisterService(c *gin.Context) gin.H {
 	} else if validateEmail == false {
 		result = gin.H{
 			"error": "Invalid Email Format",
+		}
+	} else if err2 != nil {
+		result = gin.H{
+			"error": "Email Sudah Terdaftar",
 		}
 	} else if user.Password == "" {
 		result = gin.H{

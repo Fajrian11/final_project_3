@@ -17,6 +17,7 @@ func NewCategoriesService(rr repositories.CategoriesRepoApi) *CategoriesService 
 type CategoriesServiceApi interface {
 	CreateCategoriesService(c *gin.Context) gin.H
 	GetAllCategoriesService(c *gin.Context) gin.H
+	GetCategoryByIdService(c *gin.Context) gin.H
 	UpdateCategoriesService(c *gin.Context) gin.H
 	DeleteCategoriesService(c *gin.Context) gin.H
 }
@@ -57,6 +58,27 @@ func (cs CategoriesService) GetAllCategoriesService(c *gin.Context) gin.H {
 		result = gin.H{
 			"result": GetAllCategories,
 			"count":  len(GetAllCategories),
+		}
+	}
+	return result
+}
+
+func (cs CategoriesService) GetCategoryByIdService(c *gin.Context) gin.H {
+	var (
+		result gin.H
+	)
+
+	GetCategory, err := cs.rr.GetCategoryById(c)
+	if err != nil {
+		result = gin.H{
+			"error":   "Bad Request",
+			"message": err.Error(),
+		}
+	} else {
+		result = gin.H{
+			"id":         GetCategory.ID,
+			"title":      GetCategory.Type,
+			"created_at": GetCategory.CreatedAt,
 		}
 	}
 	return result

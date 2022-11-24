@@ -28,12 +28,12 @@ func (ts TaskService) CreateTaskService(c *gin.Context) gin.H {
 	var (
 		result gin.H
 	)
-
-	Task, err, err2 := ts.rr.CreateTask(c)
+	Task, err := ts.rr.CreateTask(c)
+	_, err2 := ts.rr.GetCategoryById(Task.CategoryID)
 	status := strconv.FormatBool(Task.Status)
 	if err != nil {
 		result = gin.H{
-			"error": err.Error(),
+			"error": "category_id Not Found",
 		}
 	} else if Task.Title == "" {
 		result = gin.H{

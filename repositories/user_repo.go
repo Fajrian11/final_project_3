@@ -22,7 +22,7 @@ func NewUserRepo(db *gorm.DB) UserRepo {
 }
 
 type UserRepoApi interface {
-	UserRegister(c *gin.Context) (models.User, error)
+	UserRegister(c *gin.Context) (models.User, error, error)
 	UserLogin(c *gin.Context) (error, bool, string)
 	UpdateUser(c *gin.Context) (models.User, models.User, error)
 	DeleteUser(c *gin.Context) (models.User, error)
@@ -37,7 +37,7 @@ func Valid(email string) bool {
 	return err == nil
 }
 
-func (ur *UserRepo) UserRegister(c *gin.Context) (models.User, error) {
+func (ur *UserRepo) UserRegister(c *gin.Context) (models.User, error, error) {
 	ContentType := helpers.GetContentType(c)
 
 	JsonUser := models.User{Role: "member"}
@@ -47,6 +47,8 @@ func (ur *UserRepo) UserRegister(c *gin.Context) (models.User, error) {
 	} else {
 		c.ShouldBind(&JsonUser)
 	}
+	GetUser := models.User{}
+	err2 := ur.db.Select("email").First(&GetUser, JsonUser.Email).Error
 
 	err := ur.db.Create(&JsonUser).Error
 	fmt.Println(JsonUser)
@@ -54,7 +56,7 @@ func (ur *UserRepo) UserRegister(c *gin.Context) (models.User, error) {
 		fmt.Println(err.Error())
 	}
 
-	return JsonUser, nil
+	return JsonUser, nil, err2
 }
 
 func (ur *UserRepo) UserLogin(c *gin.Context) (error, bool, string) {
