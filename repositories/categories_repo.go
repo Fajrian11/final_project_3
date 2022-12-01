@@ -21,26 +21,13 @@ func NewCategoriesRepo(db *gorm.DB) CategoriesRepo {
 }
 
 type CategoriesRepoApi interface {
-	CreateCategories(c *gin.Context) (models.Categories, error)
+	CreateCategories(Categories models.Categories) (models.Categories, error)
 	GetAllCategories(c *gin.Context) ([]models.Categories, error)
-	GetCategoryById(c *gin.Context) (models.Categories, error)
 	UpdateCategories(c *gin.Context) (models.Categories, error)
 	DeleteCategories(c *gin.Context) (models.Categories, error)
 }
 
-func (cr *CategoriesRepo) CreateCategories(c *gin.Context) (models.Categories, error) {
-	// userData := c.MustGet("userData").(jwt.MapClaims)
-	contentType := helpers.GetContentType(c)
-
-	Categories := models.Categories{}
-	// role := userData["role"]
-
-	if contentType == appJSON {
-		c.ShouldBindJSON(&Categories)
-	} else {
-		c.ShouldBind(&Categories)
-	}
-
+func (cr *CategoriesRepo) CreateCategories(Categories models.Categories) (models.Categories, error) {
 	err := cr.db.Debug().Create(&Categories).Error
 	if err != nil {
 		fmt.Println(err.Error())
@@ -58,16 +45,14 @@ func (cr *CategoriesRepo) GetAllCategories(c *gin.Context) ([]models.Categories,
 	return GetAllCategories, err
 }
 
-func (cr *CategoriesRepo) GetCategoryById(c *gin.Context) (models.Categories, error) {
-	var GetCategory = models.Categories{}
-	categoryId, _ := strconv.Atoi(c.Param("categoryId"))
+// func (cr *CategoriesRepo) GetCategoryById(c *gin.Context) ([]models.Categories, error) {
+// 	var GetAllCategories = []models.Categories{}
+// 	// err := cr.db.Model(&models.Categories{}).Find(&GetAllCategories).Error
+// 	err := cr.db.Model(&models.Categories{}).Preload("Task").Find(&GetAllCategories).Error
 
-	// err := cr.db.Model(&models.Categories{}).Find(&GetCategory).Error
-	err := cr.db.First(&GetCategory, categoryId).Error
-
-	fmt.Println(err)
-	return GetCategory, err
-}
+// 	fmt.Println(err)
+// 	return GetAllCategories, err
+// }
 
 func (cr *CategoriesRepo) UpdateCategories(c *gin.Context) (models.Categories, error) {
 	// userData := c.MustGet("userData").(jwt.MapClaims)

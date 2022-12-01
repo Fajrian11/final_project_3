@@ -44,7 +44,6 @@ func StartAPP() *gin.Engine {
 		categoriesRouter.Use(middlewares.Authentication())
 		categoriesRouter.POST("/", middlewares.RoleAuthorization(), categoriesController.CreateCategoriesControllers)
 		categoriesRouter.GET("/", categoriesController.GetAllCategoriesControllers)
-		categoriesRouter.GET("/:categoryId", categoriesController.GetCategoryByIdControllers)
 		categoriesRouter.PATCH("/:categoryId", middlewares.CategoriesAuthorization(), categoriesController.UpdateCategoriesControllers)
 		categoriesRouter.DELETE("/:categoryId", middlewares.CategoriesAuthorization(), categoriesController.DeleteCategoriesControllers)
 	}

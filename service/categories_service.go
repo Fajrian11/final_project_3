@@ -1,6 +1,7 @@
 package service
 
 import (
+	"final_project_3/models"
 	"final_project_3/repositories"
 
 	"github.com/gin-gonic/gin"
@@ -15,32 +16,23 @@ func NewCategoriesService(rr repositories.CategoriesRepoApi) *CategoriesService 
 }
 
 type CategoriesServiceApi interface {
-	CreateCategoriesService(c *gin.Context) gin.H
+	CreateCategoriesService(input models.Categories) (models.Categories, error)
 	GetAllCategoriesService(c *gin.Context) gin.H
-	GetCategoryByIdService(c *gin.Context) gin.H
 	UpdateCategoriesService(c *gin.Context) gin.H
 	DeleteCategoriesService(c *gin.Context) gin.H
 }
 
-func (cs CategoriesService) CreateCategoriesService(c *gin.Context) gin.H {
-	var (
-		result gin.H
-	)
+func (cs CategoriesService) CreateCategoriesService(input models.Categories) (models.Categories, error) {
+	var categories models.Categories
+	categories.Type = input.Type
 
-	Categories, _ := cs.rr.CreateCategories(c)
-	if Categories.Type == "" {
-		result = gin.H{
-			"error": "Your type is required",
-		}
-	} else {
-		result = gin.H{
-			"Success":    "Data Has been created",
-			"id":         Categories.ID,
-			"title":      Categories.Type,
-			"created_at": Categories.CreatedAt,
-		}
+	categories, err := cs.rr.CreateCategories(categories)
+	if err != nil {
+		return categories, err
 	}
-	return result
+
+	return categories, nil
+
 }
 
 func (cs CategoriesService) GetAllCategoriesService(c *gin.Context) gin.H {
@@ -58,27 +50,6 @@ func (cs CategoriesService) GetAllCategoriesService(c *gin.Context) gin.H {
 		result = gin.H{
 			"result": GetAllCategories,
 			"count":  len(GetAllCategories),
-		}
-	}
-	return result
-}
-
-func (cs CategoriesService) GetCategoryByIdService(c *gin.Context) gin.H {
-	var (
-		result gin.H
-	)
-
-	GetCategory, err := cs.rr.GetCategoryById(c)
-	if err != nil {
-		result = gin.H{
-			"error":   "Bad Request",
-			"message": err.Error(),
-		}
-	} else {
-		result = gin.H{
-			"id":         GetCategory.ID,
-			"title":      GetCategory.Type,
-			"created_at": GetCategory.CreatedAt,
 		}
 	}
 	return result

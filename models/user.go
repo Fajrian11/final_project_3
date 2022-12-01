@@ -17,6 +17,11 @@ type User struct {
 	Role      string `gorm:"not null" json:"role" form:"role" valid:"required~Your role is required"`
 }
 
+type LoginInput struct {
+	Email    string `json:"email" form:"email" binding:"required"`
+	Password string `json:"password" form:"password" binding:"required"`
+}
+
 // validasi field field di database
 func (u *User) BeforeCreate() (err error) {
 	_, errCreate := govalidator.ValidateStruct(u)

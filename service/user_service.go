@@ -1,10 +1,11 @@
 package service
 
 import (
+	"errors"
+	"final_project_3/helpers"
+	"final_project_3/models"
 	"final_project_3/repositories"
 	"net/mail"
-
-	"github.com/gin-gonic/gin"
 )
 
 type UserService struct {
@@ -16,10 +17,10 @@ func NewUserService(rr repositories.UserRepoApi) *UserService { //provie service
 }
 
 type UserServiceApi interface {
-	UserRegisterService(c *gin.Context) gin.H
-	UserLoginService(c *gin.Context) gin.H
-	UpdateUserService(c *gin.Context) gin.H
-	DeleteUserService(c *gin.Context) gin.H
+	UserRegisterService(input models.User) (models.User, error)
+	UserLoginService(input models.LoginInput) (models.User, error)
+	UpdateUserService(userID uint, input models.User) (models.User, error)
+	DeleteUserService(userID uint) error
 }
 
 func Valid(email string) bool {
@@ -27,127 +28,67 @@ func Valid(email string) bool {
 	return err == nil
 }
 
-func (s UserService) UserRegisterService(c *gin.Context) gin.H {
-	var (
-		result gin.H
-	)
-
-	user, err, err2 := s.rr.UserRegister(c)
-	validateEmail := Valid(user.Email)
-	if err != nil {
-		result = gin.H{
-			"result": "Failed Create User",
-		}
-	} else if user.Full_name == "" {
-		result = gin.H{
-			"error": "Your full_name is required",
-		}
-	} else if user.Email == "" {
-		result = gin.H{
-			"error": "Your email is required",
-		}
-	} else if validateEmail == false {
-		result = gin.H{
-			"error": "Invalid Email Format",
-		}
-	} else if err2 != nil {
-		result = gin.H{
-			"error": "Email Sudah Terdaftar",
-		}
-	} else if user.Password == "" {
-		result = gin.H{
-			"error": "Your password is required",
-		}
-	} else if len(user.Password) < 6 {
-		result = gin.H{
-			"error": "Password Minimal 6 Karakter",
-		}
-	} else if user.Role == "" {
-		result = gin.H{
-			"error": "Your role is Required",
-		}
-	} else if user.Role != "admin" && user.Role != "member" {
-		result = gin.H{
-			"error": "Role Hanya boleh diisi dengan admin atau member",
-		}
-	} else {
-		result = gin.H{
-			"id":         user.ID,
-			"full_name":  user.Full_name,
-			"email":      user.Email,
-			"created_at": user.CreatedAt,
-		}
+func (us UserService) UserRegisterService(input models.User) (models.User, error) {
+	user, _ := us.rr.FindUserByEmail(input.Email)
+	if user.ID != 0 {
+		return user, errors.New("email yang anda daftarkan sudah tersedia")
 	}
-	return result
+
+	user = models.User{}
+	user.Email = input.Email
+	user.Full_name = input.Full_name
+	user.Password = input.Password
+	user.Role = "member"
+
+	user, err := us.rr.UserRegister(user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+
 }
 
-func (s UserService) UserLoginService(c *gin.Context) gin.H {
-	var result gin.H
-
-	err, comparePass, token := s.rr.UserLogin(c)
-
-	// Validate Email
+func (us *UserService) UserLoginService(input models.LoginInput) (models.User, error) {
+	user, err := us.rr.FindUserByEmail(input.Email)
 	if err != nil {
-		result = gin.H{
-			"error":   "Unauthorized",
-			"message": "invalid email / password",
-		}
+		return user, err
 	}
-	// Validate Password
+
+	comparePass := helpers.ComparePass([]byte(user.Password), []byte(input.Password))
+
 	if !comparePass {
-		result = gin.H{
-			"error":   "Unauthorized",
-			"message": "invalid email / password",
-		}
-	}
-	// Validate Email & Password Jika Berhasil
-	if err == nil && comparePass {
-		result = gin.H{
-			"token": token,
-		}
+		return user, errors.New("Invalid Password")
 	}
 
-	return result
+	return user, nil
 }
 
-func (us UserService) UpdateUserService(c *gin.Context) gin.H {
-	var (
-		result gin.H
-	)
-
-	Pengguna, _, err := us.rr.UpdateUser(c)
+func (us UserService) UpdateUserService(userID uint, input models.User) (models.User, error) {
+	// get user
+	user, err := us.rr.GetUserByID(userID)
 	if err != nil {
-		result = gin.H{
-			"error":   "Bad Request",
-			"message": err.Error(),
-		}
-	} else {
-		result = gin.H{
-			// "Success":    "Data Has been Updated",
-			"id":         Pengguna.ID,
-			"Full_name":  Pengguna.Full_name,
-			"email":      Pengguna.Email,
-			"updated_at": Pengguna.UpdatedAt,
-		}
+		return user, err
 	}
-	return result
+
+	// Update user
+	user, err = us.rr.UpdateUser(input, userID)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
 }
 
-func (us UserService) DeleteUserService(c *gin.Context) gin.H {
-	var (
-		result gin.H
-	)
-
-	_, err := us.rr.DeleteUser(c)
+func (us UserService) DeleteUserService(userID uint) error {
+	// get user
+	_, err := us.rr.GetUserByID(userID)
 	if err != nil {
-		result = gin.H{
-			"result":  "Gagal Menghapus Data",
-			"message": err.Error(),
-		}
-	} else {
-		result = gin.H{
-			"Success": "Your account has been successfully deleted",
-		}
+		return err
 	}
-	return result
+	// delete user
+	err = us.rr.DeleteUser(userID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
